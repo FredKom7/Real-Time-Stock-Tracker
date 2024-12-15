@@ -11,7 +11,7 @@ import time
 def fetch_stock_data(symbol):
     try:
         # Alpha Vantage free API endpoint
-        api_key = "7GUD47Y2RRA4FNQF"  # Replace with your Alpha Vantage API key
+        api_key = "Insert_your_api_key_here"  # Replace with your Alpha Vantage API key
         url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}"
         response = urllib.request.urlopen(url)
         data = json.loads(response.read().decode("utf-8"))
