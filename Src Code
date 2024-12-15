@@ -1,0 +1,75 @@
+import urllib.request
+import json
+import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from IPython.display import display, clear_output
+import time
+
+# Function to fetch stock data from Alpha Vantage (free API)
+def fetch_stock_data(symbol):
+    try:
+        # Alpha Vantage free API endpoint
+        api_key = "7GUD47Y2RRA4FNQF"  # Replace with your Alpha Vantage API key
+        url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}"
+        response = urllib.request.urlopen(url)
+        data = json.loads(response.read().decode("utf-8"))
+
+        # Validate if the response contains expected data
+        if "Time Series (Daily)" not in data or not data["Time Series (Daily)"]:
+            print(f"No valid data returned for {symbol}")
+            return None
+
+        daily_data = data["Time Series (Daily)"]
+        dates = []
+        close_prices = []
+
+        for date, metrics in daily_data.items():
+            dates.append(datetime.datetime.strptime(date, "%Y-%m-%d"))
+            close_prices.append(float(metrics["4. close"]))
+
+        df = pd.DataFrame({"Date": dates, "Close": close_prices})
+        df.sort_values("Date", inplace=True)
+
+        return df
+    except Exception as e:
+        print(f"Error fetching data for {symbol}: {e}")
+        return None
+
+# Function to plot stock data
+def plot_stocks(stock_symbols):
+    plt.figure(figsize=(12, 8))
+    sns.set(style="whitegrid")
+
+    for symbol in stock_symbols:
+        df = fetch_stock_data(symbol)
+        if df is not None and not df.empty:
+            plt.plot(df['Date'], df['Close'], label=symbol)
+        else:
+            print(f"Failed to fetch data for {symbol}")
+
+    plt.title("Stock Prices for Last 30 Days")
+    plt.xlabel("Date")
+    plt.ylabel("Close Price (USD)")
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+# Real-time stock tracking
+def track_stocks_real_time(stock_symbols, refresh_interval=60):
+    try:
+        while True:
+            clear_output(wait=True)
+            print("Fetching real-time stock data...")
+            plot_stocks(stock_symbols)
+            time.sleep(refresh_interval)
+    except KeyboardInterrupt:
+        print("Stopped real-time tracking.")
+
+# List of stock symbols
+stock_symbols = ["AAPL", "MSFT", "GOOGLE", "AMAZON", "TESLA"]
+
+# Run real-time tracking
+track_stocks_real_time(stock_symbols)
